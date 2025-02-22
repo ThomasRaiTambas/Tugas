@@ -1,0 +1,150 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node 
+{
+    int data;
+    struct Node* next;
+    struct Node* prev;
+} 
+Node;
+
+typedef struct DoubleLinkedList 
+{
+    Node* head;
+} 
+DoubleLinkedList;
+
+DoubleLinkedList* create_list() 
+{
+    DoubleLinkedList* dll = (DoubleLinkedList*)malloc(sizeof(DoubleLinkedList));
+    dll->head = NULL;
+    return dll;
+}
+
+void push_mid(DoubleLinkedList* dll, int data) 
+{
+    Node* new_node = (Node*)malloc(sizeof(Node));
+    new_node->data = data;
+    new_node->next = new_node->prev = NULL;
+
+    if (dll->head == NULL) 
+    {
+        dll->head = new_node;
+        return;
+    }
+
+    Node* slow = dll->head;
+    Node* fast = dll->head;
+
+    while (fast && fast->next) 
+    {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    new_node->next = slow;
+    new_node->prev = slow->prev;
+
+    if (slow->prev) 
+    {
+        slow->prev->next = new_node;
+    } else 
+    {
+        dll->head = new_node;
+    }
+    slow->prev = new_node;
+}
+
+void delete_front(DoubleLinkedList* dll) 
+{
+    if (dll->head == NULL) return;
+
+    Node* temp = dll->head;
+    dll->head = dll->head->next;
+
+    if (dll->head) dll->head->prev = NULL;
+
+    free(temp);
+}
+
+void delete_back(DoubleLinkedList* dll) 
+{
+    if (dll->head == NULL) return;
+
+    Node* temp = dll->head;
+    while (temp->next) temp = temp->next;
+
+    if (temp->prev) 
+    {
+        temp->prev->next = NULL;
+    } else 
+    {
+        dll->head = NULL;
+    }
+
+    free(temp);
+}
+
+void delete_mid(DoubleLinkedList* dll) 
+    {
+    if (dll->head == NULL || dll->head->next == NULL) 
+    {
+        free(dll->head);
+        dll->head = NULL;
+        return;
+    }
+
+    Node* slow = dll->head;
+    Node* fast = dll->head;
+
+    while (fast && fast->next) 
+    {
+        slow = slow->next;
+        fast = fast->next->next;
+    }
+
+    if (slow->prev) slow->prev->next = slow->next;
+    if (slow->next) slow->next->prev = slow->prev;
+
+    free(slow);
+}
+
+void print_list(DoubleLinkedList* dll) 
+{
+    Node* temp = dll->head;
+    while (temp) 
+    {
+        printf("%d <-> ", temp->data);
+        temp = temp->next;
+    }
+    printf("NULL\n");
+}
+
+int main() 
+{
+    DoubleLinkedList* dll = create_list();
+
+    push_mid(dll, 10);
+    push_mid(dll, 20);
+    push_mid(dll, 30);
+    print_list(dll);
+
+    delete_front(dll);
+    print_list(dll);
+
+    delete_back(dll);
+    print_list(dll);
+
+    delete_mid(dll);
+    print_list(dll);
+
+    free(dll);
+    return 0;
+
+
+
+
+
+
+}
