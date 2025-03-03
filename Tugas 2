@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+
+typedef struct Node 
+{
+    char data[MAX];
+    struct Node* next;
+} Node;
+
+typedef struct 
+{
+    Node* top;
+} Stack;
+
+void initStack(Stack* stack) 
+{
+    stack->top = NULL;
+}
+
+int isEmpty(Stack* stack) 
+{
+    return stack->top == NULL;
+}
+
+void push(Stack* stack, char* value) 
+{
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->data, value);
+    newNode->next = stack->top;
+    stack->top = newNode;
+}
+
+char* pop(Stack* stack) 
+{
+    if (isEmpty(stack)) return NULL;
+    Node* temp = stack->top;
+    stack->top = temp->next;
+    char* data = temp->data;
+    free(temp);
+    return data;
+}
+
+char* peek(Stack* stack) 
+{
+    return isEmpty(stack) ? NULL : stack->top->data;
+}
+
+int precedence(char op) 
+{
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+int isAlnum(char ch) 
+{
+    return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+}
+
+void infixToPostfix(char* infix, char* postfix) 
+{
+    Stack stack;
+    initStack(&stack);
+    int j = 0;
+    for (int i = 0; infix[i] != '\0'; i++) 
+{
+        char token = infix[i];
+
+        if (isAlnum(token)) 
+        {
+            postfix[j++] = token;
+        } 
+        else if (token == '(') 
+        {
+            char temp[2] = {token, '\0'};
+            push(&stack, temp);
+        } 
+        // Jika ')', pop hingga '(' ditemukan
+        else if (token == ')') 
+            {
+            while (!isEmpty(&stack) && peek(&stack)[0] != '(') 
+            {
+                postfix[j++] = pop(&stack)[0];
+            }
+            pop(&stack); // Hapus '(' dari stack
+        } 
+        else 
+        {
+            while (!isEmpty(&stack) && precedence(peek(&stack)[0]) >= precedence(token)) 
+            {
+                postfix[j++] = pop(&stack)[0];
+            }
+            char temp[2] = {token, '\0'};
+            push(&stack, temp);
+        }
+    }
+
+    while (!isEmpty(&stack)) 
+    {
+        postfix[j++] = pop(&stack)[0];
+    }
+    postfix[j] = '\0';
+}
+
+void postfixToInfix(char* postfix, char* infix) 
+{
+    Stack stack;
+    initStack(&stack);
+    
+    for (int i = 0; postfix[i] != '\0'; i++) 
+{
+        char token = postfix[i];
+
+        if (isAlnum(token)) 
+        {
+            char temp[2] = {token, '\0'};
+            push(&stack, temp);
+        } 
+
+        else 
+        {
+            char op2[MAX], op1[MAX];
+            strcpy(op2, pop(&stack));
+            strcpy(op1, pop(&stack));
+            
+
+            char newExpr[MAX];
+            snprintf(newExpr, MAX, "(%s%c%s)", op1, token, op2);
+            
+            push(&stack, newExpr);
+        }
+    }
+    
+
+    strcpy(infix, pop(&stack));
+}
+
+int main() 
+{
+    char infix[MAX], postfix[MAX], resultInfix[MAX];
+
+    printf("Masukkan ekspresi infix: ");
+    scanf("%s", infix);
+
+    infixToPostfix(infix, postfix);
+    printf("Postfix: %s\n", postfix);
+
+    postfixToInfix(postfix, resultInfix);
+    printf("Infix (konversi balik): %s\n", resultInfix);
+
+    return 0;
+}
